@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registro Commerciale</title>
+<style>
+:root {
+  --blue:#0078d4;--blue-light:#e8f3fc;--blue-dark:#005a9e;
+  --green:#107c10;--green-light:#dff0d8;
+  --orange:#d06000;--orange-light:#fff4e0;
+  --red:#a80000;--red-light:#fde7e9;
+  --purple:#5c2d91;--purple-light:#f0eaf8;
+  --teal:#008272;--teal-light:#e0f4f2;
+  --gray:#605e5c;--gray-light:#f3f2f1;--gray-border:#edebe9;
+  --bg:#faf9f8;--surface:#fff;--text:#323130;--text-muted:#605e5c;
+  --radius:6px;--radius-lg:10px;--shadow:0 2px 8px rgba(0,0,0,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+#cfg-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:0;padding:20px}
+#app-shell{display:none;flex-direction:column;min-height:100vh}
+.topbar{background:var(--blue);color:#fff;padding:0 20px;height:48px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.topbar-title{font-size:16px;font-weight:600;display:flex;align-items:center;gap:10px}
+.topbar-right{display:flex;align-items:center;gap:12px;font-size:13px}
+.user-chip{background:rgba(255,255,255,.2);padding:4px 12px;border-radius:20px;font-size:12px}
+.tabbar{background:var(--surface);border-bottom:1px solid var(--gray-border);padding:0 20px;display:flex;gap:4px;flex-shrink:0}
+.tab{padding:12px 16px;font-size:13px;cursor:pointer;border-bottom:2px solid transparent;color:var(--text-muted);transition:all .15s;white-space:nowrap}
+.tab.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:600}
+.tab:hover:not(.active){color:var(--text);background:var(--gray-light)}
+.main{flex:1;padding:20px}
+.toolbar{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.toolbar-left{display:flex;gap:8px;flex:1;flex-wrap:wrap;align-items:center}
+.search-box{padding:7px 12px;border:1px solid var(--gray-border);border-radius:var(--radius);font-size:13px;width:220px;background:var(--surface)}
+.search-box:focus{outline:none;border-color:var(--blue)}
+select.filter{padding:7px 10px;border:1px solid var(--gray-border);border-radius:var(--radius);font-size:13px;background:var(--surface);cursor:pointer}
+.btn{padding:7px 16px;border-radius:var(--radius);font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;border:1px solid transparent;transition:all .15s;white-space:nowrap}
+.btn-primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+.btn-primary:hover{background:var(--blue-dark)}
+.btn-secondary{background:var(--surface);color:var(--text);border-color:var(--gray-border)}
+.btn-secondary:hover{background:var(--gray-light)}
+.btn-sm{padding:4px 10px;font-size:12px;font-weight:500}
+.btn-icon{padding:5px 7px;background:transparent;border:1px solid var(--gray-border);border-radius:var(--radius);cursor:pointer;font-size:13px;color:var(--text-muted)}
+.btn-icon:hover{background:var(--gray-light);color:var(--text)}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;margin-bottom:20px}
+.kpi{background:var(--surface);border:1px solid var(--gray-border);border-radius:var(--radius-lg);padding:12px 14px;cursor:pointer;transition:border-color .15s}
+.kpi:hover,.kpi.active{border-color:var(--blue)}
+.kpi-label{font-size:11px;color:var(--text-muted);margin-bottom:4px}
+.kpi-val{font-size:24px;font-weight:700}
+.table-wrap{background:var(--surface);border:1px solid var(--gray-border);border-radius:var(--radius-lg);overflow:hidden;overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:900px}
+thead th{background:var(--gray-light);padding:10px 12px;text-align:left;font-size:12px;font-weight:600;color:var(--text-muted);border-bottom:1px solid var(--gray-border);white-space:nowrap;cursor:pointer;user-select:none}
+thead th:hover{background:#ebe9e8}
+tbody tr{border-bottom:1px solid var(--gray-border);transition:background .1s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:#f8f7f6}
+td{padding:9px 12px;vertical-align:middle}
+.td-id{font-family:'Cascadia Code','Consolas',monospace;font-size:12px;font-weight:600;color:var(--text-muted);white-space:nowrap}
+.td-cliente{font-weight:600}
+.pill{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
+.pill-ricevuto{background:#e8f3fc;color:#005a9e}
+.pill-aperto{background:#f0eaf8;color:#5c2d91}
+.pill-preventivato{background:#fff4e0;color:#7a4100}
+.pill-offerto{background:#dff0d8;color:#0a5c0a}
+.pill-aperto-odv{background:#fde7e9;color:#a80000}
+.pill-confermato-odv{background:#dff0d8;color:#107c10}
+.pill-evaso{background:#f3f2f1;color:#323130}
+.avatar{width:26px;height:26px;border-radius:50%;background:var(--blue-light);color:var(--blue);font-size:10px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.resp-cell{display:flex;align-items:center;gap:6px}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;z-index:200;padding:20px}
+.modal{background:var(--surface);border-radius:var(--radius-lg);box-shadow:0 8px 32px rgba(0,0,0,.18);width:540px;max-width:100%;max-height:90vh;overflow-y:auto}
+.modal-header{padding:20px 24px 16px;border-bottom:1px solid var(--gray-border);display:flex;align-items:center;justify-content:space-between}
+.modal-header h2{font-size:16px;font-weight:600}
+.modal-body{padding:20px 24px}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--gray-border);display:flex;justify-content:flex-end;gap:8px}
+.close-btn{background:none;border:none;font-size:18px;cursor:pointer;color:var(--text-muted);padding:4px;border-radius:4px}
+.close-btn:hover{background:var(--gray-light)}
+.form-row{margin-bottom:14px}
+.form-row label{display:block;font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:5px}
+.form-row input,.form-row select,.form-row textarea{width:100%;padding:8px 10px;border:1px solid var(--gray-border);border-radius:var(--radius);font-size:13px;font-family:inherit;background:var(--surface);color:var(--text)}
+.form-row input:focus,.form-row select:focus,.form-row textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 2px rgba(0,120,212,.12)}
+.form-row textarea{resize:vertical;min-height:64px}
+.form-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-row input[readonly]{background:var(--gray-light);color:var(--text-muted)}
+.history-list{border:1px solid var(--gray-border);border-radius:var(--radius);overflow:hidden}
+.hist-item{padding:10px 14px;border-bottom:1px solid var(--gray-border);display:flex;gap:12px}
+.hist-item:last-child{border-bottom:none}
+.hist-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.hist-content{flex:1}
+.hist-state{font-weight:600;font-size:13px}
+.hist-meta{font-size:12px;color:var(--text-muted);margin-top:2px}
+.hist-note{font-size:12px;margin-top:4px;background:var(--gray-light);padding:4px 8px;border-radius:4px}
+.task-box{background:var(--orange-light);border:1px solid #f0a500;border-radius:var(--radius);padding:12px 14px;margin-top:12px}
+.task-box-label{font-size:12px;font-weight:700;color:var(--orange);margin-bottom:10px}
+.task-item-row{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid rgba(0,0,0,.07)}
+.task-item-row:last-child{border-bottom:none}
+.task-check{width:16px;height:16px;border:2px solid #aaa;border-radius:3px;cursor:pointer;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:11px}
+.task-check.done{background:var(--green);border-color:var(--green);color:#fff}
+.task-content{flex:1}
+.task-title-txt{font-size:13px}
+.task-title-txt.done{text-decoration:line-through;color:var(--text-muted)}
+.task-meta-txt{font-size:11px;color:var(--text-muted);margin-top:2px}
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.dash-card{background:var(--surface);border:1px solid var(--gray-border);border-radius:var(--radius-lg);padding:16px 18px}
+.dash-card h3{font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:14px}
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;font-size:12px}
+.bar-label{width:130px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar-track{flex:1;height:8px;background:var(--gray-border);border-radius:4px}
+.bar-fill{height:8px;border-radius:4px;transition:width .4s}
+.bar-val{width:28px;text-align:right;font-weight:600;flex-shrink:0}
+.loader{text-align:center;padding:40px;color:var(--text-muted);font-size:13px}
+.spinner{display:inline-block;width:18px;height:18px;border:2px solid var(--gray-border);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;margin-right:8px;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+#toast{position:fixed;bottom:24px;right:24px;z-index:999;display:flex;flex-direction:column;gap:8px}
+.toast-msg{background:#323130;color:#fff;padding:10px 18px;border-radius:var(--radius);font-size:13px;box-shadow:var(--shadow);animation:slideIn .2s ease}
+.toast-msg.success{background:var(--green)}
+.toast-msg.error{background:var(--red)}
+@keyframes slideIn{from{transform:translateY(10px);opacity:0}to{transform:translateY(0);opacity:1}}
+.badge{display:inline-flex;align-items:center;justify-content:center;background:var(--red);color:#fff;font-size:10px;font-weight:700;border-radius:20px;padding:1px 6px;min-width:18px}
+.empty-state{text-align:center;padding:48px 20px;color:var(--text-muted)}
+.section-label{font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin:16px 0 8px}
+.hidden{display:none!important}
+.tag-box{background:var(--teal-light);border-left:3px solid var(--teal);padding:10px 14px;border-radius:0 var(--radius) var(--radius) 0;font-size:12px;margin-bottom:14px}
+/* Config screen */
+.cfg-card{background:var(--surface);border:1px solid var(--gray-border);border-radius:var(--radius-lg);padding:28px 32px;width:480px;max-width:100%;box-shadow:var(--shadow)}
+.cfg-card h1{font-size:20px;font-weight:700;margin-bottom:6px}
+.cfg-card p{font-size:13px;color:var(--text-muted);margin-bottom:20px}
+.cfg-step{display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;font-size:13px}
+.cfg-step-n{background:var(--blue);color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px}
+.cfg-divider{border:none;border-top:1px solid var(--gray-border);margin:18px 0}
+</style>
+</head>
+<body>
+
+<!-- CONFIG SCREEN (primo avvio) -->
+<div id="cfg-screen">
+  <div class="cfg-card">
+    <div style="font-size:28px;margin-bottom:10px">📋</div>
+    <h1>Registro Commerciale</h1>
+    <p>Inserisci l'URL del tuo sito SharePoint per collegare l'app alle liste dati.</p>
+    <div class="form-row">
+      <label>URL sito SharePoint *</label>
+      <input id="cfg-url" placeholder="https://tuodominio.sharepoint.com/sites/NomeSito" style="font-size:13px">
+      <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Copia l'URL dalla barra del browser mentre sei sul sito SharePoint</div>
+    </div>
+    <hr class="cfg-divider">
+    <div style="font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:8px">PRIMA DI CONTINUARE — crea queste 3 liste SharePoint:</div>
+    <div class="cfg-step"><div class="cfg-step-n">1</div><div><strong>RegistroCommerciale</strong> — lista principale protocolli</div></div>
+    <div class="cfg-step"><div class="cfg-step-n">2</div><div><strong>RegistroCommercialeStorico</strong> — storico cambi stato</div></div>
+    <div class="cfg-step"><div class="cfg-step-n">3</div><div><strong>RegistroCommercialeTasks</strong> — task generati</div></div>
+    <div style="font-size:11px;color:var(--text-muted);margin-top:6px;margin-bottom:18px">📄 Le colonne esatte da creare sono nella guida <strong>SETUP.md</strong> inclusa nel pacchetto.</div>
+    <div class="form-row">
+      <label>Membri del team (uno per riga) *</label>
+      <textarea id="cfg-users" rows="5" placeholder="Mario Rossi&#10;Giulia Bianchi&#10;Luca Ferrari&#10;Elena Conti"></textarea>
+    </div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:4px" onclick="saveConfig()">▶ Avvia applicazione</button>
+    <div id="cfg-error" style="color:var(--red);font-size:12px;margin-top:10px;display:none"></div>
+    <div id="cfg-param-box" style="display:none;margin-top:16px;background:#fff4e0;border:1px solid #f0a500;border-radius:6px;padding:12px 14px">
+      <div style="font-size:12px;font-weight:700;color:#7a4100;margin-bottom:6px">📋 URL da usare nell'iframe SharePoint</div>
+      <div style="font-size:11px;color:#605e5c;margin-bottom:8px">Copia questo URL e usalo come <code>src</code> dell'iframe nella web part Incorpora. Contiene già tutta la configurazione.</div>
+      <input id="cfg-param-url" readonly style="width:100%;font-size:11px;font-family:monospace;padding:6px 8px;border:1px solid #ddd;border-radius:4px;background:#fff" onclick="this.select()">
+      <button onclick="navigator.clipboard.writeText(document.getElementById('cfg-param-url').value).then(()=>alert('Copiato!'))" class="btn btn-secondary" style="margin-top:8px;font-size:12px;width:100%;justify-content:center">📄 Copia URL negli appunti</button>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app-shell">
+  <div class="topbar">
+    <div class="topbar-title">📋 Registro Commerciale <span id="fy-label" style="opacity:.7;font-weight:400;font-size:13px;margin-left:6px"></span></div>
+    <div class="topbar-right">
+      <span id="sync-status" style="font-size:12px;opacity:.8"></span>
+      <span class="user-chip" id="user-chip">…</span>
+      <button class="btn-icon" onclick="resetConfig()" title="Impostazioni" style="color:#fff;border-color:rgba(255,255,255,.3)">⚙</button>
+    </div>
+  </div>
+  <div class="tabbar">
+    <div class="tab active" onclick="switchTab('registro',this)">📄 Registro</div>
+    <div class="tab" onclick="switchTab('dashboard',this)">📊 Dashboard</div>
+    <div class="tab" onclick="switchTab('tasks',this)">✅ Task <span class="badge hidden" id="task-badge">0</span></div>
+  </div>
+  <div class="main">
+    <div id="tab-registro">
+      <div class="kpi-grid" id="kpi-grid"></div>
+      <div class="toolbar">
+        <div class="toolbar-left">
+          <input class="search-box" type="text" id="search" placeholder="🔍 Cerca cliente, N° protocollo…" oninput="renderTable()">
+          <select class="filter" id="f-stato" onchange="renderTable()"><option value="">Tutti gli stati</option></select>
+          <select class="filter" id="f-resp" onchange="renderTable()"><option value="">Tutti i responsabili</option></select>
+          <select class="filter" id="f-year" onchange="renderTable()"><option value="">Tutti gli anni FY</option></select>
+          <button class="btn-icon" onclick="loadData()" title="Aggiorna">🔄</button>
+        </div>
+        <button class="btn btn-primary" onclick="openNewModal()">＋ Nuovo protocollo</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th onclick="sortBy('id')">N° Protocollo ↕</th>
+              <th onclick="sortBy('cliente')">Cliente ↕</th>
+              <th>Venditore</th>
+              <th onclick="sortBy('stato')">Stato ↕</th>
+              <th>Responsabile</th>
+              <th onclick="sortBy('dataStato')">Data stato ↕</th>
+              <th>Prodotto</th>
+              <th onclick="sortBy('importo')">Importo ↕</th>
+              <th>Azioni</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div id="tab-dashboard" class="hidden"><div class="dash-grid" id="dash-grid"></div></div>
+    <div id="tab-tasks" class="hidden"><div id="tasks-content"></div></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<!-- MODAL NUOVO -->
+<div id="modal-new" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header"><h2>➕ Nuovo protocollo</h2><button class="close-btn" onclick="closeModal('modal-new')">✕</button></div>
+    <div class="modal-body">
+      <div class="tag-box">Il numero viene assegnato automaticamente in base all'anno fiscale (1 ott – 30 set).</div>
+      <div class="form-grid-2">
+        <div class="form-row"><label>N° Protocollo</label><input id="n-id" readonly></div>
+        <div class="form-row"><label>Data 1° contatto</label><input type="date" id="n-contatto"></div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-row"><label>Cliente *</label><input id="n-cliente" placeholder="Ragione sociale"></div>
+        <div class="form-row"><label>Venditore *</label><select id="n-venditore"></select></div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-row"><label>Tipo contatto</label>
+          <select id="n-tipo"><option>Email</option><option>Telefono</option><option>Fiera</option><option>Visita</option><option>RFQ</option><option>Portale</option></select>
+        </div>
+        <div class="form-row"><label>Internal / External</label>
+          <select id="n-intext"><option>External</option><option>Internal</option></select>
+        </div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-row"><label>Famiglia prodotto</label>
+          <select id="n-famiglia"><option>RDS</option><option>VRS</option><option>BTF</option><option>Speciale</option></select>
+        </div>
+        <div class="form-row"><label>Dimensioni [Ø - passo]</label><input id="n-dim" placeholder="es. 32x5"></div>
+      </div>
+      <div class="form-row"><label>Responsabile *</label><select id="n-resp"></select></div>
+      <div class="form-row"><label>Note</label><textarea id="n-note" rows="2"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-new')">Annulla</button>
+      <button class="btn btn-primary" onclick="createProtocol()">✓ Crea protocollo</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DETTAGLIO -->
+<div id="modal-detail" class="modal-overlay hidden">
+  <div class="modal" style="width:600px">
+    <div class="modal-header"><h2 id="detail-title">Protocollo</h2><button class="close-btn" onclick="closeModal('modal-detail')">✕</button></div>
+    <div class="modal-body" id="detail-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-detail')">Chiudi</button>
+      <button class="btn btn-primary" id="detail-state-btn">🔄 Cambia stato</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CAMBIO STATO -->
+<div id="modal-state" class="modal-overlay hidden">
+  <div class="modal" style="width:480px">
+    <div class="modal-header"><h2>🔄 Cambio stato</h2><button class="close-btn" onclick="closeModal('modal-state')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="s-proto-id">
+      <div id="s-current-info" style="margin-bottom:14px"></div>
+      <div class="form-row"><label>Nuovo stato *</label><select id="s-stato" onchange="onStateChange()"></select></div>
+      <div class="form-row"><label>Nuovo responsabile *</label><select id="s-resp"></select></div>
+      <div id="s-extra-fields"></div>
+      <div id="s-task-preview" class="hidden">
+        <div class="section-label">📌 Task generato automaticamente</div>
+        <div class="task-box">
+          <div class="task-box-label">⚡ Task per cambio stato</div>
+          <div class="form-row"><label>Titolo task</label><input id="t-title" readonly></div>
+          <div class="form-row"><label>Assegnato a *</label><select id="t-assignee"></select></div>
+          <div class="form-row"><label>Scadenza</label><input type="date" id="t-due"></div>
+          <div class="form-row"><label>Note task</label><textarea id="t-note" rows="2" placeholder="Istruzioni per il destinatario…"></textarea></div>
+        </div>
+      </div>
+      <div class="form-row" style="margin-top:10px"><label>Note transizione</label><textarea id="s-note" rows="2" placeholder="Motivo del cambio stato…"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-state')">Annulla</button>
+      <button class="btn btn-primary" onclick="applyStateChange()">✓ Conferma</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── COSTANTI ────────────────────────────────────────────────────────────────
+const STATES = ['ricevuto','aperto','preventivato','offerto','aperto odv','confermato odv','evaso'];
+const STATE_COLORS = {
+  'ricevuto':'#005a9e','aperto':'#5c2d91','preventivato':'#7a4100',
+  'offerto':'#0a5c0a','aperto odv':'#a80000','confermato odv':'#107c10','evaso':'#323130'
+};
+const STATE_TASK = {
+  'aperto':         'Aprire analisi di fattibilità tecnica',
+  'preventivato':   'Elaborare preventivo commerciale',
+  'offerto':        'Emettere e inviare offerta al cliente',
+  'aperto odv':     'Aprire ordine di vendita nel gestionale',
+  'confermato odv': 'Inviare conferma d\'ordine al cliente',
+  'evaso':          'Verificare consegna e chiudere pratica',
+};
+const STATE_EXTRA = {
+  'offerto': [
+    {id:'se-offerta-n', label:'N° Offerta', type:'text', ph:'es. OFF-2026-042'},
+    {id:'se-importo',   label:'Importo (€)',  type:'number', ph:'es. 12500'},
+  ],
+  'aperto odv': [
+    {id:'se-ord-cli',  label:'N° Ordine Cliente', type:'text'},
+    {id:'se-ord-data', label:'Data Ordine',        type:'date'},
+  ],
+  'confermato odv': [
+    {id:'se-moog-odv',  label:'N° ODV interno',       type:'text'},
+    {id:'se-consegna',  label:'Data Consegna Prevista', type:'date'},
+  ],
+};
+
+// ─── CONFIG & STATE ──────────────────────────────────────────────────────────
+// OPZIONE RAPIDA: compila siteUrl e users qui sotto per saltare la schermata
+// di configurazione. Necessario quando l'iframe SharePoint blocca sessionStorage.
+const INLINE_CONFIG = {
+  siteUrl:  '',   // es. 'https://tuodominio.sharepoint.com/sites/Commerciale'
+  users:    [],   // es. ['Mario Rossi', 'Giulia Bianchi', 'Luca Ferrari']
+  venditori:[],
+};
+
+let CFG = {};
+let protocols = [], tasks = [];
+let sortCol = 'id', sortDir = 1, activeKpi = null;
+
+function loadConfig() {
+  // Prova 1: parametri nell'URL  (?site=...&users=...)
+  const params = new URLSearchParams(window.location.search);
+  const urlSite = params.get('site');
+  const urlUsers = params.get('users');
+  if (urlSite && urlUsers) {
+    const users = urlUsers.split(',').map(u => u.trim()).filter(Boolean);
+    CFG = { siteUrl: urlSite.replace(/\/$/, ''), users, venditori: users.map(u => u.split(' ').slice(-1)[0]) };
+    return true;
+  }
+  // Prova 2: config hardcoded nel file (vedere INLINE_CONFIG sotto)
+  if (INLINE_CONFIG.siteUrl && INLINE_CONFIG.users.length) {
+    CFG = INLINE_CONFIG;
+    return true;
+  }
+  // Prova 3: sessionStorage (fallback, funziona in alcuni iframe)
+  try {
+    const stored = JSON.parse(sessionStorage.getItem('regcom_cfg') || '{}');
+    if (stored.siteUrl && stored.users) { CFG = stored; return true; }
+  } catch {}
+  return false;
+}
+
+function saveConfig() {
+  const url = document.getElementById('cfg-url').value.trim().replace(/\/$/, '');
+  const usersRaw = document.getElementById('cfg-users').value.trim();
+  if (!url) { showCfgError('Inserisci l\'URL del sito SharePoint'); return; }
+  if (!usersRaw) { showCfgError('Inserisci almeno un membro del team'); return; }
+  const users = usersRaw.split('\n').map(u => u.trim()).filter(Boolean);
+  CFG = { siteUrl: url, users, venditori: users.map(u => u.split(' ').slice(-1)[0]) };
+  // Salva in sessionStorage (funziona meglio in iframe rispetto a localStorage)
+  try { sessionStorage.setItem('regcom_cfg', JSON.stringify(CFG)); } catch {}
+  // Mostra anche l'URL parametrizzato da usare nell'iframe
+  const paramUrl = `${location.href.split('?')[0]}?site=${encodeURIComponent(url)}&users=${encodeURIComponent(users.join(','))}`;
+  document.getElementById('cfg-param-url').value = paramUrl;
+  document.getElementById('cfg-param-box').style.display = 'block';
+  startApp();
+}
+
+function showCfgError(msg) {
+  const el = document.getElementById('cfg-error');
+  el.textContent = msg; el.style.display = 'block';
+}
+
+function resetConfig() {
+  if (confirm('Vuoi modificare le impostazioni?')) {
+    try { sessionStorage.removeItem('regcom_cfg'); } catch {}
+    document.getElementById('app-shell').style.display = 'none';
+    document.getElementById('cfg-screen').style.display = 'flex';
+  }
+}
+
+// ─── SHAREPOINT REST API ─────────────────────────────────────────────────────
+// Usa le API native di SharePoint — funziona automaticamente con la sessione del browser
+function spUrl(list, extra = '') {
+  return `${CFG.siteUrl}/_api/web/lists/getbytitle('${list}')/items${extra}`;
+}
+
+async function spGet(list, filter = '', select = '') {
+  let url = spUrl(list, `?$top=2000`);
+  if (filter) url += `&$filter=${encodeURIComponent(filter)}`;
+  if (select) url += `&$select=${select}`;
+  const res = await fetch(url, {
+    headers: { 'Accept': 'application/json;odata=nometadata', 'Content-Type': 'application/json' },
+    credentials: 'include'
+  });
+  if (!res.ok) throw new Error(`SP GET ${list}: ${res.status} ${await res.text()}`);
+  const data = await res.json();
+  return data.value || [];
+}
+
+async function spPost(list, fields) {
+  const digest = await getDigest();
+  const res = await fetch(spUrl(list), {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json;odata=nometadata',
+      'Content-Type': 'application/json;odata=nometadata',
+      'X-RequestDigest': digest,
+    },
+    credentials: 'include',
+    body: JSON.stringify(fields)
+  });
+  if (!res.ok) throw new Error(`SP POST ${list}: ${res.status} ${await res.text()}`);
+  return res.json();
+}
+
+async function spPatch(list, id, fields) {
+  const digest = await getDigest();
+  const res = await fetch(spUrl(list, `(${id})`), {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json;odata=nometadata',
+      'Content-Type': 'application/json;odata=nometadata',
+      'X-RequestDigest': digest,
+      'X-HTTP-Method': 'MERGE',
+      'If-Match': '*',
+    },
+    credentials: 'include',
+    body: JSON.stringify(fields)
+  });
+  if (!res.ok && res.status !== 204) throw new Error(`SP PATCH ${list}(${id}): ${res.status} ${await res.text()}`);
+}
+
+let _digest = null, _digestExpiry = 0;
+async function getDigest() {
+  if (_digest && Date.now() < _digestExpiry) return _digest;
+  const res = await fetch(`${CFG.siteUrl}/_api/contextinfo`, {
+    method: 'POST',
+    headers: { 'Accept': 'application/json;odata=nometadata' },
+    credentials: 'include'
+  });
+  const data = await res.json();
+  _digest = data.FormDigestValue;
+  _digestExpiry = Date.now() + (data.FormDigestTimeoutSeconds - 30) * 1000;
+  return _digest;
+}
+
+async function getCurrentUser() {
+  const res = await fetch(`${CFG.siteUrl}/_api/web/currentuser`, {
+    headers: { 'Accept': 'application/json;odata=nometadata' },
+    credentials: 'include'
+  });
+  const data = await res.json();
+  return data.Title || data.LoginName || 'Utente';
+}
+
+// ─── APP START ───────────────────────────────────────────────────────────────
+async function startApp() {
+  document.getElementById('cfg-screen').style.display = 'none';
+  document.getElementById('app-shell').style.display = 'flex';
+  document.getElementById('fy-label').textContent = `FY ${getFY(new Date())}`;
+  populateFilters();
+  try {
+    const name = await getCurrentUser();
+    document.getElementById('user-chip').textContent = name;
+  } catch { document.getElementById('user-chip').textContent = 'Utente'; }
+  await loadData();
+}
+
+function populateFilters() {
+  const fStato = document.getElementById('f-stato');
+  fStato.innerHTML = '<option value="">Tutti gli stati</option>';
+  STATES.forEach(s => fStato.insertAdjacentHTML('beforeend', `<option value="${s}">${cap(s)}</option>`));
+  const fResp = document.getElementById('f-resp');
+  fResp.innerHTML = '<option value="">Tutti i responsabili</option>';
+  (CFG.users || []).forEach(u => fResp.insertAdjacentHTML('beforeend', `<option>${u}</option>`));
+  const fYear = document.getElementById('f-year');
+  fYear.innerHTML = '<option value="">Tutti gli anni FY</option>';
+  [2025, 2026, 2027, 2028].forEach(y => fYear.insertAdjacentHTML('beforeend', `<option value="${y}">FY ${y}</option>`));
+}
+
+// ─── CARICAMENTO DATI ────────────────────────────────────────────────────────
+async function loadData() {
+  setSyncStatus('⟳ Sincronizzazione…');
+  try {
+    const [rawP, rawT] = await Promise.all([
+      spGet('RegistroCommerciale', '', 'Id,Title,Cliente,Venditore,DataContatto,TipoContatto,FamigliaProdotto,Dimensioni,Responsabile,Stato,DataStato,Importo,OffertaN,OrdineCliente,OrdineMoog,DataConsegna,Note,InternalExternal'),
+      spGet('RegistroCommercialeTasks', '', 'Id,Title,ProtocolloId,Assignee,Scadenza,Note,StatoTransizione,Completato'),
+    ]);
+
+    protocols = rawP.map(i => ({
+      _id: i.Id, id: i.Title || '',
+      cliente: i.Cliente || '', venditore: i.Venditore || '',
+      contatto: fmtDate(i.DataContatto), tipo: i.TipoContatto || '',
+      famiglia: i.FamigliaProdotto || '', dim: i.Dimensioni || '',
+      responsabile: i.Responsabile || '', stato: i.Stato || 'ricevuto',
+      dataStato: fmtDate(i.DataStato), importo: i.Importo || '',
+      offerteN: i.OffertaN || '', ordineCliente: i.OrdineCliente || '',
+      ordineMoog: i.OrdineMoog || '', dataConsegna: fmtDate(i.DataConsegna),
+      note: i.Note || '', intExt: i.InternalExternal || 'External',
+    }));
+
+    tasks = rawT.map(i => ({
+      _id: i.Id, protoId: i.ProtocolloId || '', title: i.Title || '',
+      assignee: i.Assignee || '', due: fmtDate(i.Scadenza),
+      note: i.Note || '', stato: i.StatoTransizione || '',
+      done: i.Completato === true,
+    }));
+
+    setSyncStatus('✓ ' + new Date().toLocaleTimeString('it-IT'));
+    render();
+  } catch (e) {
+    setSyncStatus('⚠ Errore');
+    toast('Errore caricamento: ' + e.message, 'error');
+    console.error(e);
+  }
+}
+
+// ─── RENDER ──────────────────────────────────────────────────────────────────
+function render() { renderKpi(); renderTable(); renderTaskBadge(); }
+
+function renderKpi() {
+  const counts = {};
+  STATES.forEach(s => counts[s] = 0);
+  protocols.forEach(p => { if (counts[p.stato] !== undefined) counts[p.stato]++; });
+  document.getElementById('kpi-grid').innerHTML =
+    STATES.map(s => `<div class="kpi ${activeKpi === s ? 'active' : ''}" onclick="filterKpi('${s}')">
+      <div class="kpi-label">${cap(s)}</div>
+      <div class="kpi-val" style="color:${STATE_COLORS[s]}">${counts[s]}</div>
+    </div>`).join('') +
+    `<div class="kpi ${activeKpi === null ? 'active' : ''}" onclick="filterKpi(null)">
+      <div class="kpi-label">Totale</div>
+      <div class="kpi-val">${protocols.length}</div>
+    </div>`;
+}
+
+function filterKpi(state) {
+  activeKpi = state;
+  document.getElementById('f-stato').value = state || '';
+  renderKpi(); renderTable();
+}
+
+function renderTable() {
+  const search = document.getElementById('search').value.toLowerCase();
+  const fS = document.getElementById('f-stato').value;
+  const fR = document.getElementById('f-resp').value;
+  const fY = document.getElementById('f-year').value;
+  let data = protocols.filter(p => {
+    if (search && !p.id.toLowerCase().includes(search) && !p.cliente.toLowerCase().includes(search)) return false;
+    if (fS && p.stato !== fS) return false;
+    if (fR && p.responsabile !== fR) return false;
+    if (fY && !p.id.startsWith(fY + '_')) return false;
+    return true;
+  });
+  data.sort((a, b) => {
+    let av = a[sortCol] || '', bv = b[sortCol] || '';
+    if (sortCol === 'importo') { av = parseFloat(av) || 0; bv = parseFloat(bv) || 0; }
+    if (sortCol === 'stato') { av = STATES.indexOf(av); bv = STATES.indexOf(bv); }
+    return av < bv ? -sortDir : av > bv ? sortDir : 0;
+  });
+  const tbody = document.getElementById('tbody');
+  if (!data.length) {
+    tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state">📭<br><br>Nessun protocollo trovato</div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = data.map(p => {
+    const imp = p.importo ? '€' + Number(p.importo).toLocaleString('it-IT') : '—';
+    return `<tr>
+      <td class="td-id">${p.id}</td>
+      <td class="td-cliente">${esc(p.cliente)}</td>
+      <td>${esc(p.venditore)}</td>
+      <td><span class="pill pill-${slug(p.stato)}">${cap(p.stato)}</span></td>
+      <td><span class="resp-cell"><span class="avatar">${initials(p.responsabile)}</span>${esc(p.responsabile.split(' ')[0])}</span></td>
+      <td style="font-size:12px;color:var(--text-muted)">${p.dataStato}</td>
+      <td style="font-size:12px">${esc(p.famiglia)}${p.dim ? ' · ' + p.dim : ''}</td>
+      <td style="font-size:12px">${imp}</td>
+      <td style="white-space:nowrap">
+        <button class="btn-icon" onclick="openDetail('${p.id}')" title="Dettaglio">👁</button>
+        <button class="btn-icon" onclick="openStateModal('${p.id}')" title="Cambia stato">🔄</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function sortBy(col) { sortDir = sortCol === col ? sortDir * -1 : 1; sortCol = col; renderTable(); }
+function renderTaskBadge() {
+  const n = tasks.filter(t => !t.done).length;
+  const b = document.getElementById('task-badge');
+  b.textContent = n; b.classList.toggle('hidden', n === 0);
+}
+
+function renderTasksTab() {
+  const open = tasks.filter(t => !t.done);
+  const done = tasks.filter(t => t.done);
+  document.getElementById('tasks-content').innerHTML =
+    `<div class="section-label">Task aperti (${open.length})</div>` +
+    (open.length ? open.map(taskHtml).join('') : '<p style="color:var(--text-muted);padding:8px 0;font-size:13px">Nessun task aperto 🎉</p>') +
+    (done.length ? `<div class="section-label" style="margin-top:24px">Completati (${done.length})</div>${done.map(taskHtml).join('')}` : '');
+}
+
+function taskHtml(t) {
+  return `<div class="task-item-row">
+    <div class="task-check ${t.done ? 'done' : ''}" onclick="toggleTask(${t._id},${t.done})">${t.done ? '✓' : ''}</div>
+    <div class="task-content">
+      <div class="task-title-txt ${t.done ? 'done' : ''}">${esc(t.title)}</div>
+      <div class="task-meta-txt">${t.protoId} · <strong>${esc(t.assignee)}</strong>${t.due ? ' · scadenza <strong>' + t.due + '</strong>' : ''}${t.stato ? ' · <span class="pill pill-' + slug(t.stato) + '" style="font-size:10px">' + cap(t.stato) + '</span>' : ''}</div>
+      ${t.note ? `<div style="font-size:12px;color:var(--text-muted);margin-top:3px">${esc(t.note)}</div>` : ''}
+    </div>
+  </div>`;
+}
+
+async function toggleTask(spId, wasDone) {
+  const t = tasks.find(t => t._id === spId);
+  if (!t) return;
+  t.done = !t.done;
+  renderTaskBadge();
+  if (document.getElementById('tab-tasks').style.display !== 'none') renderTasksTab();
+  try { await spPatch('RegistroCommercialeTasks', spId, { Completato: t.done }); }
+  catch (e) { t.done = !t.done; renderTaskBadge(); toast('Errore: ' + e.message, 'error'); }
+}
+
+function renderDashboard() {
+  const counts = {}; STATES.forEach(s => counts[s] = 0);
+  protocols.forEach(p => { if (counts[p.stato] !== undefined) counts[p.stato]++; });
+  const maxC = Math.max(...Object.values(counts), 1);
+  const respC = {}; protocols.forEach(p => { respC[p.responsabile] = (respC[p.responsabile] || 0) + 1; });
+  const maxR = Math.max(...Object.values(respC), 1);
+  const totalV = protocols.reduce((s, p) => s + (parseFloat(p.importo) || 0), 0);
+  const offerte = protocols.filter(p => ['offerto','aperto odv','confermato odv','evaso'].includes(p.stato));
+  const valOff = offerte.reduce((s, p) => s + (parseFloat(p.importo) || 0), 0);
+
+  document.getElementById('dash-grid').innerHTML = `
+    <div class="dash-card"><h3>Distribuzione stati</h3>
+      ${STATES.map(s => `<div class="bar-row">
+        <div class="bar-label" title="${cap(s)}">${cap(s)}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${Math.round(counts[s]/maxC*100)}%;background:${STATE_COLORS[s]}"></div></div>
+        <div class="bar-val">${counts[s]}</div>
+      </div>`).join('')}
+    </div>
+    <div class="dash-card"><h3>Carico responsabili</h3>
+      ${Object.entries(respC).sort((a,b)=>b[1]-a[1]).map(([r,c])=>`<div class="bar-row">
+        <div class="bar-label" title="${r}">${r}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${Math.round(c/maxR*100)}%;background:#0078d4"></div></div>
+        <div class="bar-val">${c}</div>
+      </div>`).join('')}
+    </div>
+    <div class="dash-card"><h3>Riepilogo</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:4px">
+        <div><div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">Valore offerte</div><div style="font-size:20px;font-weight:700;color:#0078d4">€${Math.round(valOff).toLocaleString('it-IT')}</div></div>
+        <div><div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">Offerte emesse</div><div style="font-size:20px;font-weight:700;color:#107c10">${offerte.length}</div></div>
+        <div><div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">Task aperti</div><div style="font-size:20px;font-weight:700;color:#d06000">${tasks.filter(t=>!t.done).length}</div></div>
+        <div><div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">Anno fiscale</div><div style="font-size:20px;font-weight:700">FY ${getFY(new Date())}</div></div>
+      </div>
+    </div>
+    <div class="dash-card"><h3>Pipeline per stato (€)</h3>
+      ${STATES.map(s => { const v = protocols.filter(p=>p.stato===s).reduce((a,p)=>a+(parseFloat(p.importo)||0),0);
+        return v>0?`<div class="bar-row"><div class="bar-label">${cap(s)}</div><div class="bar-track"><div class="bar-fill" style="width:${totalV?Math.round(v/totalV*100):0}%;background:${STATE_COLORS[s]}"></div></div><div class="bar-val" style="font-size:11px;width:50px">€${(v/1000).toFixed(0)}k</div></div>`:'';
+      }).join('')}
+    </div>`;
+}
+
+// ─── MODAL NUOVO ─────────────────────────────────────────────────────────────
+function openNewModal() {
+  document.getElementById('n-id').value = getNextId();
+  document.getElementById('n-contatto').value = todayStr();
+  document.getElementById('n-cliente').value = '';
+  document.getElementById('n-note').value = '';
+  document.getElementById('n-resp').innerHTML = (CFG.users||[]).map(u=>`<option>${u}</option>`).join('');
+  document.getElementById('n-venditore').innerHTML = (CFG.users||[]).map(u=>`<option>${u}</option>`).join('');
+  openModal('modal-new');
+}
+
+async function createProtocol() {
+  const cliente = document.getElementById('n-cliente').value.trim();
+  if (!cliente) { toast('Inserire il nome del cliente', 'error'); return; }
+  const id = document.getElementById('n-id').value;
+  const resp = document.getElementById('n-resp').value;
+  try {
+    await spPost('RegistroCommerciale', {
+      Title: id, Cliente: cliente,
+      Venditore: document.getElementById('n-venditore').value,
+      DataContatto: document.getElementById('n-contatto').value || null,
+      TipoContatto: document.getElementById('n-tipo').value,
+      FamigliaProdotto: document.getElementById('n-famiglia').value,
+      Dimensioni: document.getElementById('n-dim').value,
+      Responsabile: resp, Stato: 'ricevuto',
+      DataStato: todayStr(),
+      Note: document.getElementById('n-note').value,
+      InternalExternal: document.getElementById('n-intext').value,
+    });
+    await spPost('RegistroCommercialeStorico', {
+      Title: id + '_ricevuto_' + Date.now(),
+      ProtocolloId: id, Stato: 'ricevuto',
+      Responsabile: resp, DataTransizione: todayStr(), Note: 'Protocollo creato',
+    });
+    closeModal('modal-new');
+    toast('Protocollo ' + id + ' creato ✓', 'success');
+    await loadData();
+  } catch (e) { toast('Errore: ' + e.message, 'error'); }
+}
+
+// ─── MODAL DETTAGLIO ─────────────────────────────────────────────────────────
+function openDetail(id) {
+  const p = protocols.find(p => p.id === id);
+  if (!p) return;
+  document.getElementById('detail-title').textContent = p.id + ' — ' + p.cliente;
+  const pTasks = tasks.filter(t => t.protoId === id);
+  document.getElementById('detail-body').innerHTML = `
+    <div style="display:grid;grid-template-columns:140px 1fr;gap:6px 14px;font-size:13px;margin-bottom:16px">
+      <span style="color:var(--text-muted);font-size:12px">Cliente</span><span style="font-weight:600">${esc(p.cliente)}</span>
+      <span style="color:var(--text-muted);font-size:12px">Venditore</span><span>${esc(p.venditore)}</span>
+      <span style="color:var(--text-muted);font-size:12px">Stato</span><span><span class="pill pill-${slug(p.stato)}">${cap(p.stato)}</span></span>
+      <span style="color:var(--text-muted);font-size:12px">Responsabile</span><span class="resp-cell"><span class="avatar">${initials(p.responsabile)}</span>${esc(p.responsabile)}</span>
+      <span style="color:var(--text-muted);font-size:12px">Prodotto</span><span>${esc(p.famiglia)}${p.dim?' — '+p.dim:''}</span>
+      <span style="color:var(--text-muted);font-size:12px">Tipo contatto</span><span>${esc(p.tipo)}</span>
+      ${p.importo?`<span style="color:var(--text-muted);font-size:12px">Importo offerta</span><span style="font-weight:600;color:var(--green)">€${Number(p.importo).toLocaleString('it-IT')}</span>`:''}
+      ${p.offerteN?`<span style="color:var(--text-muted);font-size:12px">N° Offerta</span><span>${esc(p.offerteN)}</span>`:''}
+      ${p.ordineCliente?`<span style="color:var(--text-muted);font-size:12px">Ordine Cliente</span><span>${esc(p.ordineCliente)}</span>`:''}
+      ${p.ordineMoog?`<span style="color:var(--text-muted);font-size:12px">ODV interno</span><span>${esc(p.ordineMoog)}</span>`:''}
+      ${p.dataConsegna?`<span style="color:var(--text-muted);font-size:12px">Data consegna</span><span>${p.dataConsegna}</span>`:''}
+      ${p.note?`<span style="color:var(--text-muted);font-size:12px">Note</span><span>${esc(p.note)}</span>`:''}
+    </div>
+    <div class="section-label">Storico stati</div>
+    <div class="history-list" id="detail-hist"><div class="loader"><span class="spinner"></span>Caricamento…</div></div>
+    ${pTasks.length ? `<div class="section-label">Task associati (${pTasks.length})</div>${pTasks.map(taskHtml).join('')}` : ''}
+  `;
+  document.getElementById('detail-state-btn').onclick = () => { closeModal('modal-detail'); openStateModal(id); };
+  openModal('modal-detail');
+  loadHistory(id);
+}
+
+async function loadHistory(protoId) {
+  try {
+    const items = await spGet('RegistroCommercialeStorico',
+      `ProtocolloId eq '${protoId}'`,
+      'Stato,Responsabile,DataTransizione,Note'
+    );
+    const el = document.getElementById('detail-hist');
+    if (!el) return;
+    if (!items.length) { el.innerHTML = '<div style="padding:12px;font-size:13px;color:var(--text-muted)">Nessuna voce di storico</div>'; return; }
+    el.innerHTML = items.map((h, i) => `
+      <div class="hist-item">
+        <div style="display:flex;flex-direction:column;align-items:center;padding-top:3px">
+          <div class="hist-dot" style="background:${STATE_COLORS[h.Stato]||'#888'}"></div>
+          ${i < items.length-1 ? '<div style="flex:1;width:1px;background:var(--gray-border);margin-top:4px;min-height:10px"></div>' : ''}
+        </div>
+        <div class="hist-content">
+          <div class="hist-state"><span class="pill pill-${slug(h.Stato||'')}">${cap(h.Stato||'')}</span></div>
+          <div class="hist-meta">${fmtDate(h.DataTransizione)} · ${esc(h.Responsabile||'')}</div>
+          ${h.Note ? `<div class="hist-note">${esc(h.Note)}</div>` : ''}
+        </div>
+      </div>`).join('');
+  } catch (e) {
+    const el = document.getElementById('detail-hist');
+    if (el) el.innerHTML = `<div style="padding:12px;font-size:12px;color:var(--text-muted)">Errore storico: ${e.message}</div>`;
+  }
+}
+
+// ─── MODAL CAMBIO STATO ───────────────────────────────────────────────────────
+function openStateModal(id) {
+  const p = protocols.find(p => p.id === id);
+  if (!p) return;
+  document.getElementById('s-proto-id').value = id;
+  document.getElementById('s-current-info').innerHTML = `
+    <div style="background:var(--gray-light);border-radius:var(--radius);padding:10px 14px;font-size:13px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <span style="color:var(--text-muted)">Protocollo:</span><strong>${p.id}</strong>
+      <span style="color:var(--text-muted)">Stato attuale:</span><span class="pill pill-${slug(p.stato)}">${cap(p.stato)}</span>
+    </div>`;
+  const curIdx = STATES.indexOf(p.stato);
+  document.getElementById('s-stato').innerHTML = STATES.map((s, i) =>
+    `<option value="${s}" ${i <= curIdx ? 'disabled' : ''} ${i === curIdx + 1 ? 'selected' : ''}>${cap(s)}${i <= curIdx ? ' ✓' : ''}</option>`
+  ).join('');
+  document.getElementById('s-resp').innerHTML = (CFG.users||[]).map(u => `<option ${u===p.responsabile?'selected':''}>${u}</option>`).join('');
+  document.getElementById('t-assignee').innerHTML = (CFG.users||[]).map(u => `<option>${u}</option>`).join('');
+  document.getElementById('s-note').value = '';
+  document.getElementById('t-due').value = '';
+  document.getElementById('t-note').value = '';
+  document.getElementById('s-extra-fields').innerHTML = '';
+  onStateChange();
+  openModal('modal-state');
+}
+
+function onStateChange() {
+  const s = document.getElementById('s-stato').value;
+  const tp = document.getElementById('s-task-preview');
+  const ef = document.getElementById('s-extra-fields');
+  tp.classList.toggle('hidden', !STATE_TASK[s]);
+  if (STATE_TASK[s]) document.getElementById('t-title').value = STATE_TASK[s];
+  ef.innerHTML = STATE_EXTRA[s] ? `<div class="section-label">Dati per stato "${cap(s)}"</div><div class="form-grid-2">${
+    STATE_EXTRA[s].map(f=>`<div class="form-row"><label>${f.label}</label><input id="${f.id}" type="${f.type}" ${f.ph?`placeholder="${f.ph}"`:''}></div>`).join('')
+  }</div>` : '';
+}
+
+async function applyStateChange() {
+  const id = document.getElementById('s-proto-id').value;
+  const newState = document.getElementById('s-stato').value;
+  const newResp = document.getElementById('s-resp').value;
+  const note = document.getElementById('s-note').value;
+  const p = protocols.find(p => p.id === id);
+  if (!p || p.stato === newState) { toast('Seleziona uno stato diverso', 'error'); return; }
+
+  const upd = { Stato: newState, Responsabile: newResp, DataStato: todayStr() };
+  if (STATE_EXTRA[newState]) {
+    STATE_EXTRA[newState].forEach(f => {
+      const v = document.getElementById(f.id)?.value;
+      if (!v) return;
+      if (f.id==='se-importo') upd.Importo = parseFloat(v);
+      if (f.id==='se-offerta-n') upd.OffertaN = v;
+      if (f.id==='se-ord-cli') upd.OrdineCliente = v;
+      if (f.id==='se-moog-odv') upd.OrdineMoog = v;
+      if (f.id==='se-consegna') upd.DataConsegna = v;
+    });
+  }
+
+  try {
+    await spPatch('RegistroCommerciale', p._id, upd);
+    await spPost('RegistroCommercialeStorico', {
+      Title: id + '_' + newState + '_' + Date.now(),
+      ProtocolloId: id, Stato: newState,
+      Responsabile: newResp, DataTransizione: todayStr(), Note: note,
+    });
+    if (STATE_TASK[newState]) {
+      await spPost('RegistroCommercialeTasks', {
+        Title: document.getElementById('t-title').value,
+        ProtocolloId: id,
+        Assignee: document.getElementById('t-assignee').value,
+        Scadenza: document.getElementById('t-due').value || null,
+        Note: document.getElementById('t-note').value,
+        StatoTransizione: newState, Completato: false,
+      });
+    }
+    closeModal('modal-state');
+    toast(`Stato aggiornato: ${cap(newState)} ✓`, 'success');
+    await loadData();
+  } catch (e) { toast('Errore: ' + e.message, 'error'); }
+}
+
+// ─── UTILS ───────────────────────────────────────────────────────────────────
+function getFY(d) { return d.getMonth() >= 9 ? d.getFullYear()+1 : d.getFullYear(); }
+function getNextId() {
+  const fy = getFY(new Date()), prefix = fy + '_';
+  const nums = protocols.filter(p=>p.id.startsWith(prefix)).map(p=>parseInt(p.id.split('_')[1])||0);
+  return prefix + String((nums.length ? Math.max(...nums) : 0) + 1).padStart(3,'0');
+}
+function todayStr() { return new Date().toISOString().split('T')[0]; }
+function fmtDate(v) { if (!v) return ''; try { return new Date(v).toISOString().split('T')[0]; } catch { return v||''; } }
+function cap(s) { return s ? s.charAt(0).toUpperCase()+s.slice(1) : ''; }
+function slug(s) { return (s||'').toLowerCase().replace(/\s+/g,'-'); }
+function initials(n) { return (n||'').split(' ').map(p=>p[0]).join('').slice(0,2).toUpperCase(); }
+function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function setSyncStatus(s) { document.getElementById('sync-status').textContent = s; }
+function toast(msg, type='') {
+  const el = document.createElement('div'); el.className='toast-msg '+type; el.textContent=msg;
+  document.getElementById('toast').appendChild(el); setTimeout(()=>el.remove(), 3500);
+}
+function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+function switchTab(tab, el) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); el.classList.add('active');
+  ['registro','dashboard','tasks'].forEach(t=>document.getElementById('tab-'+t).classList.toggle('hidden',t!==tab));
+  if (tab==='dashboard') renderDashboard();
+  if (tab==='tasks') renderTasksTab();
+}
+document.addEventListener('click', e => {
+  ['modal-new','modal-detail','modal-state'].forEach(id=>{ if(e.target===document.getElementById(id)) closeModal(id); });
+});
+
+// ─── AVVIO ───────────────────────────────────────────────────────────────────
+if (loadConfig()) startApp();
+</script>
+</body>
+</html>
